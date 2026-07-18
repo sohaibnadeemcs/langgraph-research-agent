@@ -2,7 +2,7 @@
 
 A multi-step agentic AI workflow that plans, searches the web, and synthesizes a sourced research answer — built with **LangGraph** to demonstrate stateful, conditional agent orchestration rather than a single-shot LLM call.
 
-**[🚀 Live Demo](#)** &nbsp;·&nbsp; Run locally: `streamlit run app.py`
+**[🚀 Live Demo](https://langgraph-research-agent-live.streamlit.app/)** &nbsp;·&nbsp; Run locally: `streamlit run app.py`
 
 ---
 
