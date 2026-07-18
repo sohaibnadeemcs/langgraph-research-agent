@@ -31,6 +31,24 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
+/* Force readable white/light text everywhere, regardless of theme load order */
+.stApp, .stApp p, .stApp li, .stApp span, .stApp label,
+.stApp .stMarkdown, .stApp .stMarkdown p, .stApp .stMarkdown li,
+[data-testid="stMarkdownContainer"], [data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li, [data-testid="stMarkdownContainer"] a,
+[data-testid="stCaptionContainer"], [data-testid="stExpander"] p,
+[data-testid="stExpander"] li {
+    color: #f2f0ff !important;
+}
+
+[data-testid="stMarkdownContainer"] a {
+    color: #4fd1c5 !important;
+}
+
+.stTextInput input {
+    color: #1a0b2e !important;
+}
+
 /* Animated aurora gradient background on the whole app */
 .stApp {
     background: linear-gradient(-45deg, #1a0b2e, #2d1b4e, #0f2847, #3b1550, #1a0b2e);
