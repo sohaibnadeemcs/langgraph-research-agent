@@ -1,89 +1,90 @@
-# LangGraph Research Agent
+# 🔎 LangGraph Research Agent
 
-A multi-step AI research agent built with **LangGraph**. Give it a question, and it:
+A multi-step agentic AI workflow that plans, searches the web, and synthesizes a sourced research answer — built with **LangGraph** to demonstrate stateful, conditional agent orchestration rather than a single-shot LLM call.
 
-1. **Plans** — breaks your question into 2-3 focused sub-questions
-2. **Searches** — runs each sub-question through the Tavily web search API
-3. **Synthesizes** — combines all findings into one clear, sourced answer
+**[🚀 Live Demo](#)** &nbsp;·&nbsp; Run locally: `streamlit run app.py`
 
-Unlike a single-prompt chatbot call, this is an actual **graph** with conditional
-routing: if the search step comes back empty, the agent automatically retries
-(up to 2 times) before gracefully giving up — instead of silently returning a
-bad answer.
+---
 
-## Architecture
+## How it works
 
-```mermaid
-graph TD
-    A[User Query] --> B[Planner Node]
-    B --> C[Search Node]
-    C -->|results found| D[Synthesizer Node]
-    C -->|no results, retries left| C
-    C -->|no results, out of retries| E[Failure Node]
-    D --> F[Final Answer]
-    E --> F
+Instead of sending a user's question straight to an LLM, this agent breaks the task into a graph of specialized steps — each one able to react to what happened before it:
+
+```
+   ┌───────────┐      ┌────────┐      ┌──────────────┐
+   │  Planner  │ ───▶ │ Search │ ───▶ │  Synthesizer │ ───▶ END
+   └───────────┘      └────────┘      └──────────────┘
+                          │  ▲
+                 (search failed,     
+                  retries left)
+                          └──┘ retry
+                          │
+                 (search failed,
+                  no retries left)
+                          ▼
+                     ┌─────────┐
+                     │ Failure │ ───▶ END
+                     └─────────┘
 ```
 
-**State object** (`state.py`) is the shared data structure passed between every
-node — each node reads what it needs from it and writes back its results.
+1. **Planner** — breaks the user's question into 2–3 focused sub-questions using Groq (`llama-3.3-70b-versatile`). Narrower sub-questions return far better search results than the raw query.
+2. **Search** — runs each sub-question through the Tavily search API and collects results.
+3. **Conditional routing** — if search comes back empty, the graph retries (up to 2 times) before giving up gracefully, instead of crashing or returning a hollow answer.
+4. **Synthesizer** — combines everything gathered into a single structured answer: overview, key findings, and sources.
+
+This conditional retry logic is the actual point of using LangGraph here — a plain script can't loop back and react to a bad search result the way a graph with edges and routing functions can.
 
 ## Tech Stack
 
-- **LangGraph** — graph orchestration and conditional routing
-- **LangChain** — LLM wrapper
-- **Groq (Llama 3.3 70B)** — the LLM (planning + synthesis), via free/fast Groq inference
+- **LangGraph** / **LangChain** — graph orchestration
+- **Groq API** (`llama-3.3-70b-versatile`) — fast LLM inference for planning and synthesis
 - **Tavily API** — real-time web search
-- **Streamlit** — optional demo UI
-- **python-dotenv** — API key management
+- **Streamlit** — web UI
+- **python-dotenv** — local environment config
 
-## Setup
+## Run it locally
 
-1. Clone the repo and install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+git clone https://github.com/sohaibnadeemcs/langgraph-research-agent.git
+cd langgraph-research-agent
 
-2. Copy `.env.example` to `.env` and add your API keys:
-   ```bash
-   cp .env.example .env
-   ```
-   - Get a free Groq key: https://console.groq.com/keys
-   - Get a free Tavily key: https://tavily.com
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
 
-3. Run it as a CLI:
-   ```bash
-   python main.py
-   ```
+pip install -r requirements.txt
 
-   Or run the Streamlit demo UI:
-   ```bash
-   streamlit run app.py
-   ```
-
-## Project Structure
-
-```
-langgraph-research-agent/
-├── state.py       # Shared AgentState definition
-├── nodes.py        # Planner, Search, Synthesizer, Failure node logic
-├── graph.py         # LangGraph wiring + conditional routing
-├── main.py           # CLI entry point
-├── app.py             # Streamlit UI entry point
-├── requirements.txt
-└── .env.example
+cp .env.example .env
+# then add your GROQ_API_KEY and TAVILY_API_KEY to .env
 ```
 
-## Why this project
+**Web UI:**
+```bash
+streamlit run app.py
+```
 
-Most "AI apps" are a single prompt-in, response-out API call. This project
-demonstrates actual **agentic workflow design**: breaking a task into steps,
-routing between them based on runtime conditions, and handling failure paths
-gracefully — the core skill behind real AI Ops / agent-building roles.
+**Command line:**
+```bash
+python main.py
+```
 
-## Possible extensions
+## Project structure
 
-- Add a "critic" node that checks if the synthesized answer actually addresses
-  the original question before returning it
-- Swap Tavily for a different tool (file search, database query, API call) to
-  show the graph is tool-agnostic
-- Add memory so follow-up questions build on previous research in the session
+```
+├── app.py           # Streamlit UI
+├── main.py          # CLI entry point
+├── graph.py         # Wires nodes into a LangGraph StateGraph
+├── nodes.py         # Planner, Search, Synthesizer, Failure node logic
+├── state.py         # Shared AgentState schema
+├── .streamlit/
+│   └── config.toml  # Custom theme
+└── requirements.txt
+```
+
+## Get free API keys
+
+- Groq: [console.groq.com/keys](https://console.groq.com/keys)
+- Tavily: [tavily.com](https://tavily.com)
+
+---
+
+Built by [Sohaib Nadeem](https://github.com/sohaibnadeemcs) — [LinkedIn](https://linkedin.com/in/sohaib-nadeem-pk)
